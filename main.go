@@ -1,11 +1,14 @@
 package main
 
 import (
-    "bufio"
-    "errors"
-    "fmt"
-    "os"
-    "strings"
+	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/cg219/pokedex/internal/pokeapi"
+	"github.com/charmbracelet/log"
 )
 
 type command struct {
@@ -13,6 +16,9 @@ type command struct {
     desc string
     cb func() error
 }
+
+var nextL pokeapi.LocationQuery
+var prevL pokeapi.LocationQuery
 
 func getCommandList() map[string]command {
     return map[string]command{
@@ -26,7 +32,48 @@ func getCommandList() map[string]command {
             desc: "close pokedex",
             cb: exitCommand,
         },
+        "map": {
+            name: "map",
+            desc: "load the next 10 maps",
+            cb: mapCommand(true),
+        },
+        "mapb": {
+            name: "mapb",
+            desc: "load the prev 10 maps",
+            cb: mapCommand(false),
+        },
     }
+}
+
+func mapCommand(next bool) func() error {
+    lq := pokeapi.LocationQuery{}
+
+    if next && nextL != (pokeapi.LocationQuery{}) {
+        lq = nextL
+    }
+
+    if !next && prevL != (pokeapi.LocationQuery{}) {
+        lq = prevL
+    }
+
+    return func() error {
+        locs, nl, pl, err := pokeapi.GetLocation(lq)
+
+        nextL = nl
+        prevL = pl
+
+        for _, l := range locs {
+            fmt.Println(l.Name)
+        }
+
+        if err != nil {
+            log.Error(err)    
+        }
+
+        return nil
+
+    }
+
 }
 
 func exitCommand() error {
