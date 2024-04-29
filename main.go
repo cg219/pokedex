@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/cg219/pokedex/internal/pokeapi"
+	"github.com/cg219/pokedex/internal/pokecache"
 	"github.com/charmbracelet/log"
 )
 
@@ -94,6 +96,9 @@ func helpCommand() error {
 
 func main() {
     reader := bufio.NewReader(os.Stdin)
+    cache := pokecache.NewCache(time.Second * 8)
+
+    fmt.Println(cache)
 
     for {
         fmt.Print("Pokedex > ")
